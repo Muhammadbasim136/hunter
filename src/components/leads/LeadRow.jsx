@@ -6,7 +6,7 @@ import Spinner from "../ui/Spinner";
 import { IconChevronDown, IconWand, IconSend, IconTrash, IconCheck, IconRefresh } from "../ui/Icons";
 import { useAppState } from "../../context/AppStateContext";
 import { getErrorMessage } from "../../lib/api";
-import { buildWhatsAppUrls, openWhatsAppChat } from "../../lib/whatsappLinks";
+import { buildWhatsAppUrls, openWhatsAppChat, supportsWhatsAppAppChoice } from "../../lib/whatsappLinks";
 
 const SEND_CHANNELS = {
   whatsapp: [{ value: "whatsapp", label: "WhatsApp" }],
@@ -205,7 +205,7 @@ export default function LeadRow({ lead, defaultLanguage, defaultWhatsappApp = "b
               </select>
             )}
 
-            {sendChannel === "whatsapp" && (
+            {sendChannel === "whatsapp" && supportsWhatsAppAppChoice() && (
               <select
                 value={whatsappApp}
                 onChange={(e) => setWhatsappApp(e.target.value)}

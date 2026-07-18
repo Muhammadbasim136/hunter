@@ -44,6 +44,19 @@ const COUNTRY_CALLING_CODES = {
   mexico: "52",
 };
 
+const ANDROID_PACKAGE = {
+  business: "com.whatsapp.w4b",
+  standard: "com.whatsapp",
+};
+
+function isAndroid() {
+  return typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+}
+
+export function supportsWhatsAppAppChoice() {
+  return isAndroid();
+}
+
 function countryKey(country = "") {
   return String(country).trim().toLowerCase().replace(/[_-]+/g, " ");
 }
@@ -68,47 +81,26 @@ export function normalizeWhatsAppPhone(rawPhone, country) {
 export function buildWhatsAppNativeUrl({ phone, country, text, app = "standard" }) {
   const normalizedPhone = normalizeWhatsAppPhone(phone, country);
   if (!normalizedPhone) return null;
-  const scheme = app === "business" ? "whatsapp-business" : "whatsapp";
-  return `${scheme}://send?phone=${normalizedPhone}&text=${encodeURIComponent(text || "")}`;
+
+  const encodedText = encodeURIComponent(text || "");
+  if (isAndroid()) {
+    const packageName = ANDROID_PACKAGE[app] || ANDROID_PACKAGE.standard;
+    return `intent://send?phone=${normalizedPhone}&text=${encodedText}#Intent;scheme=whatsapp;package=${packageName};end`;
+  }
+
+  return `whatsapp://send?phone=${normalizedPhone}&text=${encodedText}`;
 }
 
 export function buildWhatsAppUrls({ phone, country, text, app = "business" }) {
-  const normalizedPhone = normalizeWhatsAppPhone(phone, country);
-  if (!normalizedPhone) return [];
-
-  const encodedText = encodeURIComponent(text || "");
-  const standardUrl = `whatsapp://send?phone=${normalizedPhone}&text=${encodedText}`;
-  const businessUrl = `whatsapp-business://send?phone=${normalizedPhone}&text=${encodedText}`;
-
-  return app === "business" ? [businessUrl, standardUrl] : [standardUrl];
+  const url = buildWhatsAppNativeUrl({ phone, country, text, app });
+  return url ? [url] : [];
 }
 
 export function openWhatsAppChat({ phone, country, text, app = "business" }) {
-  const urls = buildWhatsAppUrls({ phone, country, text, app });
-  if (urls.length === 0) return false;
+  const url = buildWhatsAppNativeUrl({ phone, country, text, app });
+  if (!url) return false;
 
-  const timers = [];
-  const clearFallbacks = () => {
-    while (timers.length) clearTimeout(timers.pop());
-    document.removeEventListener("visibilitychange", onVisibilityChange);
-    window.removeEventListener("pagehide", clearFallbacks);
-  };
-  const onVisibilityChange = () => {
-    if (document.hidden) clearFallbacks();
-  };
-
-  document.addEventListener("visibilitychange", onVisibilityChange);
-  window.addEventListener("pagehide", clearFallbacks, { once: true });
-
-  window.location.href = urls[0];
-
-  urls.slice(1).forEach((url, index) => {
-    timers.push(
-      setTimeout(() => {
-        if (!document.hidden) window.location.href = url;
-      }, 900 + index * 900)
-    );
-  });
+  window.location.href = url;
 
   return true;
 }
