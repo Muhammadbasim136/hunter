@@ -6,7 +6,7 @@ import Spinner from "../ui/Spinner";
 import { IconChevronDown, IconWand, IconSend, IconTrash, IconCheck, IconRefresh } from "../ui/Icons";
 import { useAppState } from "../../context/AppStateContext";
 import { getErrorMessage } from "../../lib/api";
-import { openWhatsAppChat } from "../../lib/whatsappLinks";
+import { buildWhatsAppNativeUrl } from "../../lib/whatsappLinks";
 
 const SEND_CHANNELS = {
   whatsapp: [{ value: "whatsapp", label: "WhatsApp" }],
@@ -67,22 +67,21 @@ export default function LeadRow({ lead, defaultLanguage, defaultWhatsappApp = "b
           return;
         }
 
-        const opened = openWhatsAppChat({
+        const url = buildWhatsAppNativeUrl({
           phone: lead.phone,
           country: lead.country,
           text: outgoingMessage,
           app: whatsappApp,
         });
 
-        if (!opened) {
+        if (!url) {
           toast.error("This lead has no usable WhatsApp number.");
           return;
         }
 
-        toast.success(`Opening WhatsApp for ${lead.name || "lead"}. Marking sent.`);
-        updateLeadStatus(id, "sent", "whatsapp").catch((err) => {
-          toast.error(getErrorMessage(err, "WhatsApp opened, but couldn't mark this lead sent."));
-        });
+        await updateLeadStatus(id, "sent", "whatsapp");
+        toast.success(`Marked sent. Opening WhatsApp for ${lead.name || "lead"}.`);
+        window.location.href = url;
         return;
       }
 

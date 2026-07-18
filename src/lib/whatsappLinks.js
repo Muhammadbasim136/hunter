@@ -79,9 +79,8 @@ export function buildWhatsAppUrls({ phone, country, text, app = "business" }) {
   const encodedText = encodeURIComponent(text || "");
   const standardUrl = `whatsapp://send?phone=${normalizedPhone}&text=${encodedText}`;
   const businessUrl = `whatsapp-business://send?phone=${normalizedPhone}&text=${encodedText}`;
-  const webUrl = `https://wa.me/${normalizedPhone}?text=${encodedText}`;
 
-  return app === "business" ? [businessUrl, standardUrl, webUrl] : [standardUrl, webUrl];
+  return app === "business" ? [businessUrl, standardUrl] : [standardUrl];
 }
 
 export function openWhatsAppChat({ phone, country, text, app = "business" }) {

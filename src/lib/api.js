@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.DEV ? "http://localhost:5000" : "https://hunterslite-backend.vercel.app");
+  "https://hunterslite-backend.vercel.app";
 const TOKEN_KEY = "hunterlite_token";
 
 export function getToken() {
