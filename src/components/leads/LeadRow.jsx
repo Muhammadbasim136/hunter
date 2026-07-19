@@ -127,6 +127,17 @@ export default function LeadRow({ lead, defaultLanguage, defaultWhatsappApp = "b
     }
   };
 
+
+  const handleCopy = async (text, label) => {
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success(`${label} copied`);
+  } catch {
+    toast.error("Copy failed");
+  }
+};
+
   const canSend = lead.actions?.canSend !== false && lead.status !== "sent";
   const canGenerate = lead.actions?.canGenerate !== false;
   const messageLanguage = lead.messageLanguage || defaultLanguage;
@@ -175,11 +186,31 @@ export default function LeadRow({ lead, defaultLanguage, defaultWhatsappApp = "b
             <LanguageSelector value={language} onChange={setLanguage} size="sm" />
           </div>
 
-          {message ? (
-            <p className="text-sm text-ink bg-surface border border-hairline rounded-md p-3 mb-3 whitespace-pre-wrap font-body leading-relaxed">
-              {message}
-            </p>
-          ) : (
+          <div className="flex items-center gap-2 mb-3">
+      <button
+        onClick={() => handleCopy(lead.phone, "Number")}
+        disabled={!lead.phone}
+        className="btn-secondary !py-1 !px-2 text-xs"
+        title="Copy number"
+      >
+        📋 {lead.phone || "No number"}
+      </button>
+    </div>
+
+     {message ? (
+      <div className="relative mb-3">
+      <p className="text-sm text-ink bg-surface border border-hairline rounded-md p-3 pr-10 whitespace-pre-wrap font-body leading-relaxed">
+        {message}
+      </p>
+        <button
+         onClick={() => handleCopy(message, "Message")}
+         className="absolute top-2 right-2 text-ink-faint hover:text-ink p-1"
+         title="Copy message"
+         >
+         📋
+       </button>
+    </div>
+         ) : (
             <p className="text-sm text-ink-faint italic mb-3">No message generated yet.</p>
           )}
 
